@@ -1,0 +1,21 @@
+{
+  "welcome": "Bienvenido al Sistema del Restaurante",
+  "errors": {
+    "generic": "Ha ocurrido un error",
+    "notFound": "Recurso no encontrado",
+    "unauthorized": "No autorizado",
+    "forbidden": "Acceso prohibido",
+    "validation": "Error de validación"
+  },
+  "success": {
+    "created": "Creado exitosamente",
+    "updated": "Actualizado exitosamente",
+    "deleted": "Eliminado exitosamente"
+  },
+  "validation": {
+    "required": "{{field}} es requerido",
+    "email": "Debe ser un email válido",
+    "minLength": "Mínimo {{min}} caracteres",
+    "maxLength": "Máximo {{max}} caracteres"
+  }
+}

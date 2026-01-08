@@ -1,0 +1,505 @@
+# **Ruta Crítica de Desarrollo - Sistema Web Restaurante**
+
+## **FASE 0: PREPARACIÓN (Día 1-2)**
+
+### **1. Setup Inicial**
+```
+✓ Crear repositorio Git (GitHub/GitLab)
+✓ Inicializar proyecto con package.json
+✓ Configurar ESLint + Prettier
+✓ Configurar TypeScript (opcional pero recomendado)
+✓ Configurar EditorConfig
+✓ Setup de Docker y docker-compose.yml
+✓ Crear estructura de carpetas completa
+```
+
+### **2. Entorno de Desarrollo**
+```bash
+# Stack tecnológico a instalar
+Node.js 18+ y npm/yarn/pnpm
+PostgreSQL 15+ (via Docker)
+Redis (opcional para cache)
+Git
+VS Code con extensiones recomendadas
+```
+
+---
+
+## **FASE 1: BACKEND BASE (Día 3-10)**
+
+### **Día 3-4: Configuración Backend**
+```javascript
+// Estructura inicial
+backend/
+├── package.json
+├── .env.example
+├── docker-compose.yml
+├── Dockerfile
+├── src/
+│   ├── app.js
+│   ├── server.js
+│   └── config/
+```
+
+**Tareas:**
+- [ ] Configurar Express + middlewares básicos
+- [ ] Configurar conexión a PostgreSQL
+- [ ] Configurar variables de entorno
+- [ ] Setup de logging con Winston/Morgan
+- [ ] Configurar CORS y seguridad básica
+- [ ] Crear script de migraciones inicial
+
+### **Día 5-6: Autenticación y Usuarios**
+```javascript
+modules/auth/
+├── controllers/
+├── models/User.js
+├── routes/
+├── services/
+├── middleware/jwt.js
+└── validators/
+```
+
+**Tareas:**
+- [ ] Modelo User con roles (cliente, proveedor, admin)
+- [ ] Sistema de registro/login JWT
+- [ ] Middleware de autenticación
+- [ ] Password hashing (bcrypt)
+- [ ] Validación de datos (Joi/Zod)
+- [ ] Internacionalización básica (es/ru)
+
+### **Día 7-8: Módulo Platos e Ingredientes**
+```javascript
+modules/dishes/
+├── controllers/dishes.controller.js
+├── models/Dish.js, Ingredient.js
+├── routes/dishes.routes.js
+├── services/dishes.service.js
+└── validators/dish.validator.js
+```
+
+**Tareas:**
+- [ ] CRUD completo de platos
+- [ ] CRUD de ingredientes
+- [ ] Relaciones plato-ingrediente
+- [ ] Sistema de categorías
+- [ ] Upload de imágenes (Cloudinary/Multer)
+- [ ] Traducciones (nombre, descripción)
+
+### **Día 9-10: Personalización y Carrito**
+```javascript
+modules/customization/
+├── controllers/customization.controller.js
+├── models/CustomDish.js
+├── services/customization.service.js
+└── validators/customization.validator.js
+```
+
+**Tareas:**
+- [ ] Sistema de personalización de platos
+- [ ] Lógica de precios dinámicos
+- [ ] Carrito de compras (sesión/DB)
+- [ ] Guardar combinaciones favoritas
+- [ ] Validación de disponibilidad ingredientes
+
+---
+
+## **FASE 2: NÚCLEO DEL NEGOCIO (Día 11-20)**
+
+### **Día 11-13: Sistema de Pedidos**
+```javascript
+modules/orders/
+├── controllers/orders.controller.js
+├── models/Order.js, OrderItem.js
+├── services/order.service.js
+├── notifications/ (Socket.io)
+└── validators/order.validator.js
+```
+
+**Tareas:**
+- [ ] Modelo Order con estados (pendiente, aceptado, etc.)
+- [ ] Creación de pedido desde carrito
+- [ ] Notificaciones en tiempo real (Socket.io)
+- [ ] Historial de pedidos por usuario
+- [ ] Sistema de seguimiento básico
+
+### **Día 14-15: Panel Proveedor**
+```javascript
+modules/provider/
+├── controllers/provider.controller.js
+├── dashboard/
+├── notifications/
+└── inventory/ (gestión ingredientes)
+```
+
+**Tareas:**
+- [ ] Dashboard de pedidos pendientes
+- [ ] Sistema para aceptar/rechazar pedidos
+- [ ] Actualización estados de pedido
+- [ ] Gestión básica de inventario
+- [ ] Estadísticas simples del día
+
+### **Día 16-17: Reseñas y Comentarios**
+```javascript
+modules/reviews/
+├── controllers/reviews.controller.js
+├── models/Review.js
+├── services/review.service.js
+└── moderation/ (moderación básica)
+```
+
+**Tareas:**
+- [ ] Sistema de calificación (1-5 estrellas)
+- [ ] Comentarios con imágenes
+- [ ] Moderación automática (palabras prohibidas)
+- [ ] Respuestas del proveedor
+- [ ] Promedios y cálculos de rating
+
+### **Día 18-20: Internacionalización Completa**
+```javascript
+shared/i18n/
+├── locales/
+│   ├── es/
+│   │   ├── common.json
+│   │   ├── dishes.json
+│   │   └── orders.json
+│   └── ru/
+└── i18n.middleware.js
+```
+
+**Tareas:**
+- [ ] Middleware de detección idioma
+- [ ] Traducción completa de interfaz
+- [ ] Formato fechas/horas regional
+- [ ] Manejo RTL si necesario
+- [ ] API multilenguaje
+
+---
+
+## **FASE 3: ANALÍTICAS Y ADMIN (Día 21-30)**
+
+### **Día 21-23: Sistema de Analíticas**
+```javascript
+modules/analytics/
+├── controllers/analytics.controller.js
+├── services/analytics.service.js
+├── models/AnalyticsLog.js
+└── dashboard/ (gráficos y reportes)
+```
+
+**Tareas:**
+- [ ] Logging de eventos clave (platos vistos, pedidos)
+- [ ] Endpoints para estadísticas
+- [ ] Platos más populares
+- [ ] Horarios pico
+- [ ] Ingredientes más solicitados
+- [ ] Dashboard básico con Chart.js
+
+### **Día 24-26: Panel de Administración**
+```javascript
+modules/admin/
+├── controllers/admin.controller.js
+├── dashboard/
+├── reports/
+└── system/ (configuración sistema)
+```
+
+**Tareas:**
+- [ ] CRUD completo de todos los modelos
+- [ ] Gestión de usuarios
+- [ ] Modificación de precios masiva
+- [ ] Reportes de ventas
+- [ ] Configuración del sistema
+
+### **Día 27-28: Seguridad Avanzada**
+```javascript
+shared/security/
+├── rate-limiter.js
+├── helmet.config.js
+├── sanitization.js
+├── audit/ (logs de seguridad)
+└── monitoring/ (monitoreo)
+```
+
+**Tareas:**
+- [ ] Rate limiting por IP/usuario
+- [ ] Headers de seguridad (Helmet)
+- [ ] Sanitización de inputs
+- [ ] Protección contra XSS, SQL injection
+- [ ] Logs de auditoría
+- [ ] Monitoreo de endpoints
+
+### **Día 29-30: Testing y Optimización**
+```javascript
+__tests__/
+├── unit/
+├── integration/
+└── e2e/
+```
+
+**Tareas:**
+- [ ] Tests unitarios (Jest)
+- [ ] Tests de integración
+- [ ] Tests E2E de flujos críticos
+- [ ] Optimización de consultas DB
+- [ ] Indexación de base de datos
+- [ ] Cache con Redis (opcional)
+
+---
+
+## **FASE 4: FRONTEND (Día 31-45)**
+
+### **Día 31-33: Setup Frontend**
+```javascript
+frontend/
+├── next.config.js
+├── tailwind.config.js
+├── i18n.config.js
+└── app/ (Next.js App Router)
+```
+
+**Tareas:**
+- [ ] Setup Next.js 14 con TypeScript
+- [ ] Configurar Tailwind CSS
+- [ ] Setup internacionalización
+- [ ] Configurar estado global (Zustand)
+- [ ] Configurar API client (Axios)
+
+### **Día 34-37: Landing y Catálogo**
+```javascript
+app/[lang]/
+├── page.tsx (home)
+├── menu/
+│   ├── page.tsx
+│   └── [id]/page.tsx
+└── components/
+    ├── DishCard.tsx
+    └── CategoryFilter.tsx
+```
+
+**Tareas:**
+- [ ] Diseño responsive
+- [ ] Galería de platos con filtros
+- [ ] Vista detalle de plato
+- [ ] Sistema de búsqueda
+- [ ] Carrito flotante
+
+### **Día 38-40: Personalizador Interactivo**
+```javascript
+app/[lang]/customize/
+├── page.tsx
+├── components/
+│   ├── IngredientSelector.tsx
+│   ├── PriceCalculator.tsx
+│   └── PreviewDish.tsx
+└── actions/ (server actions)
+```
+
+**Tareas:**
+- [ ] UI tipo constructor de platos
+- [ ] Selector de ingredientes con drag & drop
+- [ ] Cálculo de precio en tiempo real
+- [ ] Vista previa del plato
+- [ ] Guardar como favorito
+
+### **Día 41-43: Flujo de Pedido**
+```javascript
+app/[lang]/checkout/
+├── page.tsx
+├── components/
+│   ├── OrderSummary.tsx
+│   ├── DeliveryForm.tsx
+│   └── OrderTracker.tsx
+└── notifications/ (Socket.io client)
+```
+
+**Tareas:**
+- [ ] Proceso checkout (sin pago)
+- [ ] Formulario de entrega
+- [ ] Seguimiento en tiempo real
+- [ ] Notificaciones push/web
+- [ ] Historial de pedidos
+
+### **Día 44-45: Paneles (Admin/Proveedor)**
+```javascript
+app/[lang]/dashboard/
+├── provider/
+├── admin/
+└── components/
+    ├── StatsCards.tsx
+    └── RecentOrders.tsx
+```
+
+**Tareas:**
+- [ ] Dashboard proveedor (pedidos, estadísticas)
+- [ ] Dashboard admin (reportes, gestión)
+- [ ] Gráficos y métricas
+- [ ] Sistema de notificaciones
+
+---
+
+## **FASE 5: INTEGRACIÓN Y DEPLOY (Día 46-55)**
+
+### **Día 46-48: Integración Completa**
+```bash
+# Tareas:
+- [ ] Conectar frontend con backend APIs
+- [ ] Manejo de errores y loading states
+- [ ] WebSocket para notificaciones real-time
+- [ ] Cache de imágenes optimizado
+- [ ] Offline support básico
+```
+
+### **Día 49-51: Testing E2E y QA**
+```javascript
+cypress/
+├── e2e/
+│   ├── user-flow.cy.js
+│   ├── provider-flow.cy.js
+│   └── admin-flow.cy.js
+└── fixtures/
+```
+
+**Tareas:**
+- [ ] Tests E2E con Cypress
+- [ ] Testing de carga (k6/Locust)
+- [ ] Testing cross-browser
+- [ ] Testing mobile responsive
+- [ ] Ajustes UX/UI finales
+
+### **Día 52-53: Preparación Producción**
+```yaml
+# docker-compose.prod.yml
+# Configuración:
+- [ ] Optimizar imágenes Docker
+- [ ] Configurar Nginx como reverse proxy
+- [ ] Setup SSL/TLS (Let's Encrypt)
+- [ ] Configurar backups automáticos
+- [ ] Monitoreo (Prometheus/Grafana opcional)
+```
+
+### **Día 54-55: Deploy y Monitoreo**
+```bash
+# Entorno producción:
+1. Servidor/VPS: DigitalOcean, AWS Lightsail
+2. Database: PostgreSQL managed o contenedor
+3. Frontend: Vercel/Netlify
+4. Backend: Railway/Render o mismo servidor
+5. Dominio y DNS configurados
+
+# Tareas:
+- [ ] Deploy inicial
+- [ ] Configurar CI/CD (GitHub Actions)
+- [ ] Setup de logging centralizado
+- [ ] Monitoreo de errores (Sentry)
+- [ ] Alertas por email/telegram
+```
+
+---
+
+## **FASE 6: POST-LANZAMIENTO (Día 56+)**
+
+### **Sprint 1 (Día 56-60): Mejoras y Optimización**
+- [ ] Análisis de métricas reales
+- [ ] Optimización basada en datos
+- [ ] Fix bugs reportados
+- [ ] Mejoras de performance
+
+### **Sprint 2: Nuevas Funcionalidades**
+- [ ] Sistema de recomendaciones
+- [ ] Programación de pedidos
+- [ ] Sistema de fidelización
+- [ ] Integración pagos digitales
+- [ ] App móvil (React Native)
+
+---
+
+## **CHECKLIST DE SEGURIDAD (CRÍTICO)**
+
+### **Nivel 1 (Día 1-10)**
+- [ ] HTTPS obligatorio
+- [ ] Sanitización de inputs
+- [ ] Rate limiting básico
+- [ ] Headers de seguridad
+- [ ] Password hashing (bcrypt)
+
+### **Nivel 2 (Día 11-30)**
+- [ ] Validación JWT robusta
+- [ ] Protección CSRF
+- [ ] SQL injection prevention
+- [ ] XSS protection
+- [ ] File upload validation
+
+### **Nivel 3 (Día 31-55)**
+- [ ] Auditoría de logs
+- [ ] Monitoreo de intentos de intrusión
+- [ ] Backups automáticos y cifrados
+- [ ] Penetration testing básico
+- [ ] Plan de respuesta a incidentes
+
+---
+
+## **SISTEMA DE LOGS Y MONITOREO**
+
+### **Logs Estructurados:**
+```javascript
+// Ejemplo de log
+{
+  timestamp: "2024-01-15T10:30:00Z",
+  level: "INFO",
+  service: "orders",
+  userId: "user_123",
+  action: "order_created",
+  orderId: "order_456",
+  ip: "192.168.1.1",
+  userAgent: "Chrome/120.0",
+  durationMs: 245,
+  metadata: {}
+}
+```
+
+### **Métricas a Monitorear:**
+1. **Performance:** Tiempo respuesta API, uso CPU/RAM
+2. **Negocio:** Pedidos por hora, platos populares
+3. **Errores:** Rate de errores 4xx/5xx
+4. **Seguridad:** Intentos fallidos login, requests sospechosos
+
+---
+
+## **CALENDARIO ESTIMADO (55 días)**
+
+```
+Semana 1-2: Backend Base + Autenticación
+Semana 3-4: Núcleo Negocio (Pedidos, Personalización)
+Semana 5-6: Analíticas + Admin + Seguridad
+Semana 7-8: Frontend Completo
+Semana 9-10: Integración + Deploy + Testing
+```
+
+## **RECURSOS Y HERRAMIENTAS**
+
+### **Gratuitas:**
+- **CI/CD:** GitHub Actions
+- **Monitoring:** Uptime Kuma + Prometheus
+- **Logs:** Winston + Papertrail (free tier)
+- **Errors:** Sentry (free tier)
+- **Email:** Resend (free tier)
+
+### **De Bajo Costo:**
+- **Hosting:** DigitalOcean $5-10/mes
+- **Database:** PostgreSQL en mismo servidor
+- **Storage:** Cloudinary (free tier para inicio)
+- **Domain:** ~$10-15/año
+
+---
+
+## **CONSEJOS FINALES**
+
+1. **Prioriza MVP:** Haz lo básico funcional primero
+2. **Test temprano:** No dejes testing para el final
+3. **Documenta:** API con Swagger, código con comentarios
+4. **Backups:** Configura desde el día 1
+5. **Medir:** Implementa analytics desde inicio
+6. **Feedback:** Lanza beta con usuarios reales rápido
+
+¿Quieres que profundice en alguna fase específica o necesitas detalles de implementación de algún módulo en particular?
