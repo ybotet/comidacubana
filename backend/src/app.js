@@ -12,7 +12,7 @@ class App {
   constructor() {
     this.app = express();
     this.port = config.port;
-    
+
     this.initializeDatabase();
     this.initializeMiddlewares();
     this.initializeRoutes();
@@ -41,9 +41,9 @@ class App {
 
     // CORS
     this.app.use(cors({
-      origin: process.env.NODE_ENV === 'production' 
-        ? ['https://tudominio.com'] 
-        : ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:3002'],
+      origin: process.env.NODE_ENV === 'production'
+        ? ['https://tudominio.com']
+        : ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:3002', 'http://localhost:3003'],
       credentials: true,
     }));
 
@@ -71,10 +71,16 @@ class App {
   initializeRoutes() {
     // Importar rutas de mÃ³dulos
     const authRoutes = require('./modules/auth/routes/auth.routes');
-    
+    const categoryRoutes = require('./modules/dishes/routes/category.routes');
+    const ingredientRoutes = require('./modules/dishes/routes/ingredient.routes');
+    const dishRoutes = require('./modules/dishes/routes/dish.routes');
+
     // Registrar rutas
     this.app.use(`${config.apiPrefix}/auth`, authRoutes);
-    
+    this.app.use(`${config.apiPrefix}/categories`, categoryRoutes);
+    this.app.use(`${config.apiPrefix}/ingredients`, ingredientRoutes);
+    this.app.use(`${config.apiPrefix}/dishes`, dishRoutes);
+
     // Ruta principal de API
     this.app.get(config.apiPrefix, (req, res) => {
       res.status(200).json({
@@ -85,10 +91,37 @@ class App {
           auth: {
             register: 'POST /api/v1/auth/register',
             login: 'POST /api/v1/auth/login',
-            profile: 'GET /api/v1/auth/profile',
-            refreshToken: 'POST /api/v1/auth/refresh-token'
+            profile: 'GET /api/v1/auth/profile'
+          },
+          categories: {
+            list: 'GET /api/v1/categories',
+            get: 'GET /api/v1/categories/:id'
+          },
+          ingredients: {
+            list: 'GET /api/v1/ingredients',
+            get: 'GET /api/v1/ingredients/:id',
+            by_category: 'GET /api/v1/ingredients/category/:category',
+            search: 'GET /api/v1/ingredients/search/:query'
+          },
+          dishes: {
+            list: 'GET /api/v1/dishes',
+            get: 'GET /api/v1/dishes/:id',
+            popular: 'GET /api/v1/dishes/popular',
+            search: 'GET /api/v1/dishes/search/:query',
+            customize: 'POST /api/v1/dishes/:id/customize'
           },
           health: 'GET /health'
+        },
+        filters: {
+          dishes: {
+            category_id: '?category_id=UUID',
+            is_featured: '?is_featured=true',
+            search: '?search=texto',
+            min_price: '?min_price=10',
+            max_price: '?max_price=50',
+            sort_by: '?sort_by=price_asc|price_desc|name_asc|preparation_time|newest|popularity',
+            lang: '?lang=es|ru'
+          }
         }
       });
     });
@@ -111,7 +144,10 @@ class App {
           `${config.apiPrefix}`,
           '/health',
           `${config.apiPrefix}/auth/register`,
-          `${config.apiPrefix}/auth/login`
+          `${config.apiPrefix}/auth/login`,
+          `${config.apiPrefix}/categories`,
+          `${config.apiPrefix}/ingredients`,
+          `${config.apiPrefix}/dishes`
         ]
       });
     });
@@ -124,12 +160,14 @@ class App {
   listen() {
     this.server = this.app.listen(this.port, () => {
       logger.info(`
-        íº€ Servidor ejecutÃ¡ndose en modo ${config.nodeEnv}
-        í³¡ Escuchando en puerto ${this.port}
-        í¼ API: http://localhost:${this.port}${config.apiPrefix}
-        í³Š Health: http://localhost:${this.port}/health
-        í´ Auth: http://localhost:${this.port}${config.apiPrefix}/auth
-        í³š DocumentaciÃ³n: http://localhost:${this.port}${config.apiPrefix}
+        ğŸš€ Servidor ejecutÃ¡ndose en modo ${config.nodeEnv}
+        ğŸ“¡ Escuchando en puerto ${this.port}
+        ğŸŒ API: http://localhost:${this.port}${config.apiPrefix}
+        ğŸ“Š Health: http://localhost:${this.port}/health
+        ğŸ” Auth: http://localhost:${this.port}${config.apiPrefix}/auth
+        ğŸ½ï¸  Platos: http://localhost:${this.port}${config.apiPrefix}/dishes
+        ğŸ¥— Ingredientes: http://localhost:${this.port}${config.apiPrefix}/ingredients
+        ğŸ“š DocumentaciÃ³n: http://localhost:${this.port}${config.apiPrefix}
       `);
     });
 
