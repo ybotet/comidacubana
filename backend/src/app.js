@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
+const cookieParser = require('cookie-parser');
 
 const config = require('./config');
 const logger = require('./shared/logging/logger');
@@ -51,6 +52,9 @@ class App {
     this.app.use(express.json({ limit: '10mb' }));
     this.app.use(express.urlencoded({ extended: true }));
 
+    // Cookie parser
+    this.app.use(cookieParser());
+
     // HTTP request logging
     this.app.use(morgan('combined', { stream: logger.stream }));
 
@@ -74,12 +78,20 @@ class App {
     const categoryRoutes = require('./modules/dishes/routes/category.routes');
     const ingredientRoutes = require('./modules/dishes/routes/ingredient.routes');
     const dishRoutes = require('./modules/dishes/routes/dish.routes');
+    const cartRoutes = require('./modules/orders/routes/cart.routes');
+    const orderRoutes = require('./modules/orders/routes/order.routes');
+    const addressRoutes = require('./modules/orders/routes/address.routes');
+    const notificationRoutes = require('./modules/orders/routes/notification.routes');
 
     // Registrar rutas
     this.app.use(`${config.apiPrefix}/auth`, authRoutes);
     this.app.use(`${config.apiPrefix}/categories`, categoryRoutes);
     this.app.use(`${config.apiPrefix}/ingredients`, ingredientRoutes);
     this.app.use(`${config.apiPrefix}/dishes`, dishRoutes);
+    this.app.use(`${config.apiPrefix}/cart`, cartRoutes);
+    this.app.use(`${config.apiPrefix}/orders`, orderRoutes);
+    this.app.use(`${config.apiPrefix}/addresses`, addressRoutes);
+    this.app.use(`${config.apiPrefix}/notifications`, notificationRoutes);
 
     // Ruta principal de API
     this.app.get(config.apiPrefix, (req, res) => {
@@ -93,35 +105,29 @@ class App {
             login: 'POST /api/v1/auth/login',
             profile: 'GET /api/v1/auth/profile'
           },
-          categories: {
-            list: 'GET /api/v1/categories',
-            get: 'GET /api/v1/categories/:id'
-          },
-          ingredients: {
-            list: 'GET /api/v1/ingredients',
-            get: 'GET /api/v1/ingredients/:id',
-            by_category: 'GET /api/v1/ingredients/category/:category',
-            search: 'GET /api/v1/ingredients/search/:query'
-          },
+          categories: 'GET /api/v1/categories',
+          ingredients: 'GET /api/v1/ingredients',
           dishes: {
             list: 'GET /api/v1/dishes',
             get: 'GET /api/v1/dishes/:id',
-            popular: 'GET /api/v1/dishes/popular',
             search: 'GET /api/v1/dishes/search/:query',
             customize: 'POST /api/v1/dishes/:id/customize'
           },
+          cart: {
+            get: 'GET /api/v1/cart',
+            add: 'POST /api/v1/cart/items',
+            remove: 'DELETE /api/v1/cart/items/:index',
+            clear: 'DELETE /api/v1/cart'
+          },
+          orders: {
+            create: 'POST /api/v1/orders',
+            list: 'GET /api/v1/orders',
+            get: 'GET /api/v1/orders/:id',
+            update_status: 'PUT /api/v1/orders/:id/status'
+          },
+          addresses: 'GET /api/v1/addresses',
+          notifications: 'GET /api/v1/notifications',
           health: 'GET /health'
-        },
-        filters: {
-          dishes: {
-            category_id: '?category_id=UUID',
-            is_featured: '?is_featured=true',
-            search: '?search=texto',
-            min_price: '?min_price=10',
-            max_price: '?max_price=50',
-            sort_by: '?sort_by=price_asc|price_desc|name_asc|preparation_time|newest|popularity',
-            lang: '?lang=es|ru'
-          }
         }
       });
     });
@@ -147,7 +153,9 @@ class App {
           `${config.apiPrefix}/auth/login`,
           `${config.apiPrefix}/categories`,
           `${config.apiPrefix}/ingredients`,
-          `${config.apiPrefix}/dishes`
+          `${config.apiPrefix}/dishes`,
+          `${config.apiPrefix}/cart`,
+          `${config.apiPrefix}/orders`
         ]
       });
     });
@@ -166,7 +174,8 @@ class App {
         📊 Health: http://localhost:${this.port}/health
         🔐 Auth: http://localhost:${this.port}${config.apiPrefix}/auth
         🍽️  Platos: http://localhost:${this.port}${config.apiPrefix}/dishes
-        🥗 Ingredientes: http://localhost:${this.port}${config.apiPrefix}/ingredients
+        🛒 Carrito: http://localhost:${this.port}${config.apiPrefix}/cart
+        📦 Pedidos: http://localhost:${this.port}${config.apiPrefix}/orders
         📚 Documentación: http://localhost:${this.port}${config.apiPrefix}
       `);
     });

@@ -1,7 +1,5 @@
-const Dish = require('../models/Dish');
-const Ingredient = require('../models/Ingredient');
-const DishIngredient = require('../models/DishIngredient');
-const Category = require('../models/Category');
+const { Dish, Ingredient, DishIngredient, Category } = require('../models');
+const { Op } = require('sequelize');
 const logger = require('../../../shared/logging/logger');
 
 class DishService {
@@ -9,52 +7,55 @@ class DishService {
     this.Dish = Dish;
     this.Ingredient = Ingredient;
     this.DishIngredient = DishIngredient;
+    this.Category = Category;
+    this.Op = Op;
+    this.logger = logger;
   }
 
   async getAllDishes(lang = 'es', filters = {}) {
     try {
       const whereCondition = { is_active: true };
-      
+
       // Aplicar filtros
       if (filters.category_id) {
         whereCondition.category_id = filters.category_id;
       }
-      
+
       if (filters.is_featured !== undefined) {
         whereCondition.is_featured = filters.is_featured;
       }
-      
+
       if (filters.search) {
-        whereCondition[this.Dish.sequelize.Op.or] = [
-          { name_es: { [this.Dish.sequelize.Op.iLike]: `%${filters.search}%` } },
-          { name_ru: { [this.Dish.sequelize.Op.iLike]: `%${filters.search}%` } },
-          { description_es: { [this.Dish.sequelize.Op.iLike]: `%${filters.search}%` } },
-          { description_ru: { [this.Dish.sequelize.Op.iLike]: `%${filters.search}%` } },
-          { tags: { [this.Dish.sequelize.Op.contains]: [filters.search] } }
+        whereCondition[this.Op.or] = [
+          { name_es: { [this.Op.iLike]: `%${filters.search}%` } },
+          { name_ru: { [this.Op.iLike]: `%${filters.search}%` } },
+          { description_es: { [this.Op.iLike]: `%${filters.search}%` } },
+          { description_ru: { [this.Op.iLike]: `%${filters.search}%` } },
+          { tags: { [this.Op.contains]: [filters.search] } }
         ];
       }
-      
+
       if (filters.min_price !== undefined) {
         whereCondition.base_price = {
-          [this.Dish.sequelize.Op.gte]: parseFloat(filters.min_price)
+          [this.Op.gte]: parseFloat(filters.min_price)
         };
       }
-      
+
       if (filters.max_price !== undefined) {
         whereCondition.base_price = {
           ...whereCondition.base_price,
-          [this.Dish.sequelize.Op.lte]: parseFloat(filters.max_price)
+          [this.Op.lte]: parseFloat(filters.max_price)
         };
       }
 
       const include = [
         {
-          model: Category,
+          model: this.Category,
           as: 'category',
           required: false
         },
         {
-          model: Ingredient,
+          model: this.Ingredient,
           as: 'ingredients',
           through: { attributes: ['quantity', 'is_removable', 'is_default', 'order'] },
           where: filters.ingredient_id ? { id: filters.ingredient_id } : undefined,
@@ -98,7 +99,7 @@ class DishService {
           try {
             return await dish.getPublicData(lang, true);
           } catch (error) {
-            logger.error(`Error procesando plato ${dish.id}:`, error);
+            this.logger.error(`Error procesando plato ${dish.id}:`, error);
             return null;
           }
         })
@@ -107,7 +108,7 @@ class DishService {
       // Filtrar nulos y devolver
       return dishesWithData.filter(dish => dish !== null);
     } catch (error) {
-      logger.error('Error obteniendo platos:', error);
+      this.logger.error('Error obteniendo platos:', error);
       throw error;
     }
   }
@@ -117,17 +118,17 @@ class DishService {
       const dish = await this.Dish.findByPk(id, {
         include: [
           {
-            model: Category,
+            model: this.Category,
             as: 'category'
           },
           {
-            model: Ingredient,
+            model: this.Ingredient,
             as: 'ingredients',
             through: { attributes: ['quantity', 'is_removable', 'is_default', 'order'] }
           }
         ]
       });
-      
+
       if (!dish) {
         throw new Error('Plato no encontrado');
       }
@@ -141,7 +142,7 @@ class DishService {
 
       return await dish.getPublicData(lang, true);
     } catch (error) {
-      logger.error('Error obteniendo plato por ID:', error);
+      this.logger.error('Error obteniendo plato por ID:', error);
       throw error;
     }
   }
@@ -165,7 +166,7 @@ class DishService {
         created_by: userId
       });
 
-      logger.info(`Plato creado: ${dish.name_es} por usuario ${userId}`);
+      this.logger.info(`Plato creado: ${dish.name_es} por usuario ${userId}`);
 
       // Si hay ingredientes, agregarlos
       if (dishData.ingredients && Array.isArray(dishData.ingredients)) {
@@ -174,7 +175,7 @@ class DishService {
 
       return dish;
     } catch (error) {
-      logger.error('Error creando plato:', error);
+      this.logger.error('Error creando plato:', error);
       throw error;
     }
   }
@@ -182,7 +183,7 @@ class DishService {
   async updateDish(id, updateData) {
     try {
       const dish = await this.Dish.findByPk(id);
-      
+
       if (!dish) {
         throw new Error('Plato no encontrado');
       }
@@ -192,7 +193,7 @@ class DishService {
         const existingDish = await this.Dish.findOne({
           where: {
             name_es: updateData.name_es,
-            id: { [this.Dish.sequelize.Op.ne]: id }
+            id: { [this.Op.ne]: id }
           }
         });
 
@@ -202,17 +203,17 @@ class DishService {
       }
 
       await dish.update(updateData);
-      
+
       // Si hay ingredientes, actualizarlos
       if (updateData.ingredients && Array.isArray(updateData.ingredients)) {
         await this._updateDishIngredients(dish.id, updateData.ingredients);
       }
 
-      logger.info(`Plato actualizado: ${dish.name_es}`);
+      this.logger.info(`Plato actualizado: ${dish.name_es}`);
 
       return dish;
     } catch (error) {
-      logger.error('Error actualizando plato:', error);
+      this.logger.error('Error actualizando plato:', error);
       throw error;
     }
   }
@@ -236,7 +237,7 @@ class DishService {
 
       await this.DishIngredient.bulkCreate(dishIngredients);
     } catch (error) {
-      logger.error('Error actualizando ingredientes del plato:', error);
+      this.logger.error('Error actualizando ingredientes del plato:', error);
       throw error;
     }
   }
@@ -244,22 +245,22 @@ class DishService {
   async deleteDish(id) {
     try {
       const dish = await this.Dish.findByPk(id);
-      
+
       if (!dish) {
         throw new Error('Plato no encontrado');
       }
 
       // No eliminar físicamente, solo marcar como inactivo
       await dish.update({ is_active: false });
-      logger.info(`Plato marcado como inactivo: ${dish.name_es}`);
+      this.logger.info(`Plato marcado como inactivo: ${dish.name_es}`);
 
-      return { 
-        success: true, 
+      return {
+        success: true,
         message: 'Plato marcado como inactivo correctamente',
         dish_id: id
       };
     } catch (error) {
-      logger.error('Error eliminando plato:', error);
+      this.logger.error('Error eliminando plato:', error);
       throw error;
     }
   }
@@ -267,15 +268,15 @@ class DishService {
   async toggleDishStatus(id) {
     try {
       const dish = await this.Dish.findByPk(id);
-      
+
       if (!dish) {
         throw new Error('Plato no encontrado');
       }
 
       await dish.update({ is_active: !dish.is_active });
       const status = dish.is_active ? 'activado' : 'desactivado';
-      
-      logger.info(`Plato ${status}: ${dish.name_es}`);
+
+      this.logger.info(`Plato ${status}: ${dish.name_es}`);
 
       return {
         success: true,
@@ -283,7 +284,7 @@ class DishService {
         is_active: dish.is_active
       };
     } catch (error) {
-      logger.error('Error cambiando estado del plato:', error);
+      this.logger.error('Error cambiando estado del plato:', error);
       throw error;
     }
   }
@@ -291,15 +292,15 @@ class DishService {
   async toggleFeaturedStatus(id) {
     try {
       const dish = await this.Dish.findByPk(id);
-      
+
       if (!dish) {
         throw new Error('Plato no encontrado');
       }
 
       await dish.update({ is_featured: !dish.is_featured });
       const status = dish.is_featured ? 'destacado' : 'no destacado';
-      
-      logger.info(`Plato marcado como ${status}: ${dish.name_es}`);
+
+      this.logger.info(`Plato marcado como ${status}: ${dish.name_es}`);
 
       return {
         success: true,
@@ -307,7 +308,7 @@ class DishService {
         is_featured: dish.is_featured
       };
     } catch (error) {
-      logger.error('Error cambiando estado destacado del plato:', error);
+      this.logger.error('Error cambiando estado destacado del plato:', error);
       throw error;
     }
   }
@@ -320,7 +321,7 @@ class DishService {
         limit: limit,
         include: [
           {
-            model: Category,
+            model: this.Category,
             as: 'category'
           }
         ]
@@ -335,7 +336,7 @@ class DishService {
               ingredients_count: dish.ingredients ? dish.ingredients.length : 0
             };
           } catch (error) {
-            logger.error(`Error procesando plato popular ${dish.id}:`, error);
+            this.logger.error(`Error procesando plato popular ${dish.id}:`, error);
             return null;
           }
         })
@@ -343,7 +344,7 @@ class DishService {
 
       return dishesWithData.filter(dish => dish !== null);
     } catch (error) {
-      logger.error('Error obteniendo platos populares:', error);
+      this.logger.error('Error obteniendo platos populares:', error);
       throw error;
     }
   }
@@ -357,11 +358,11 @@ class DishService {
         },
         include: [
           {
-            model: Category,
+            model: this.Category,
             as: 'category'
           },
           {
-            model: Ingredient,
+            model: this.Ingredient,
             as: 'ingredients',
             through: { attributes: [] }
           }
@@ -375,7 +376,7 @@ class DishService {
 
       return dishesWithData;
     } catch (error) {
-      logger.error('Error obteniendo platos por categoría:', error);
+      this.logger.error('Error obteniendo platos por categoría:', error);
       throw error;
     }
   }
@@ -385,17 +386,17 @@ class DishService {
       const dishes = await this.Dish.findAll({
         where: {
           is_active: true,
-          [this.Dish.sequelize.Op.or]: [
-            { name_es: { [this.Dish.sequelize.Op.iLike]: `%${query}%` } },
-            { name_ru: { [this.Dish.sequelize.Op.iLike]: `%${query}%` } },
-            { description_es: { [this.Dish.sequelize.Op.iLike]: `%${query}%` } },
-            { description_ru: { [this.Dish.sequelize.Op.iLike]: `%${query}%` } },
-            { tags: { [this.Dish.sequelize.Op.contains]: [query] } }
+          [this.Op.or]: [
+            { name_es: { [this.Op.iLike]: `%${query}%` } },
+            { name_ru: { [this.Op.iLike]: `%${query}%` } },
+            { description_es: { [this.Op.iLike]: `%${query}%` } },
+            { description_ru: { [this.Op.iLike]: `%${query}%` } },
+            { tags: { [this.Op.contains]: [query] } }
           ]
         },
         include: [
           {
-            model: Category,
+            model: this.Category,
             as: 'category'
           }
         ],
@@ -408,7 +409,7 @@ class DishService {
 
       return dishesWithData;
     } catch (error) {
-      logger.error('Error buscando platos:', error);
+      this.logger.error('Error buscando platos:', error);
       throw error;
     }
   }
@@ -418,13 +419,13 @@ class DishService {
       const dish = await this.Dish.findByPk(dishId, {
         include: [
           {
-            model: Ingredient,
+            model: this.Ingredient,
             as: 'ingredients',
             through: { attributes: ['quantity', 'is_removable', 'is_default'] }
           }
         ]
       });
-      
+
       if (!dish || !dish.is_active) {
         throw new Error('Plato no encontrado o no disponible');
       }
@@ -464,7 +465,7 @@ class DishService {
             const dishIngredient = dish.ingredients.find(
               ing => ing.id === ingredientId && ing.DishIngredient.is_removable
             );
-            
+
             if (dishIngredient) {
               customizationDetails.removed.push({
                 id: ingredient.id,
@@ -509,7 +510,7 @@ class DishService {
         }
       };
     } catch (error) {
-      logger.error('Error personalizando plato:', error);
+      this.logger.error('Error personalizando plato:', error);
       throw error;
     }
   }

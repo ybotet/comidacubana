@@ -131,34 +131,34 @@ const Dish = sequelize.define('Dish', {
   ]
 });
 
-// Relaciones
-Dish.belongsTo(Category, {
-  foreignKey: 'category_id',
-  as: 'category'
-});
+// // Relaciones
+// Dish.belongsTo(Category, {
+//   foreignKey: 'category_id',
+//   as: 'category'
+// });
 
-Category.hasMany(Dish, {
-  foreignKey: 'category_id',
-  as: 'dishes'
-});
+// Category.hasMany(Dish, {
+//   foreignKey: 'category_id',
+//   as: 'dishes'
+// });
 
 // Métodos de instancia
-Dish.prototype.getName = function(lang = 'es') {
+Dish.prototype.getName = function (lang = 'es') {
   return lang === 'ru' ? this.name_ru : this.name_es;
 };
 
-Dish.prototype.getDescription = function(lang = 'es') {
+Dish.prototype.getDescription = function (lang = 'es') {
   return lang === 'ru' ? this.description_ru : this.description_es;
 };
 
 // Método para incrementar popularidad
-Dish.prototype.incrementPopularity = async function(points = 1) {
+Dish.prototype.incrementPopularity = async function (points = 1) {
   this.popularity_score = (parseFloat(this.popularity_score) || 0) + points;
   await this.save();
 };
 
 // Método para obtener datos públicos
-Dish.prototype.getPublicData = async function(lang = 'es', includeIngredients = true) {
+Dish.prototype.getPublicData = async function (lang = 'es', includeIngredients = true) {
   const data = {
     id: this.id,
     name: this.getName(lang),

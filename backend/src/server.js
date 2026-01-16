@@ -1,3 +1,6 @@
+// Cargar modelos primero para establecer relaciones
+require('./shared/database/models');
+
 const App = require('./app');
 const logger = require('./shared/logging/logger');
 

@@ -1,16 +1,16 @@
 const { sequelize } = require('../src/shared/database/config');
-const Category = require('../src/modules/dishes/models/Category');
-const Ingredient = require('../src/modules/dishes/models/Ingredient');
-const Dish = require('../src/modules/dishes/models/Dish');
-const DishIngredient = require('../src/modules/dishes/models/DishIngredient');
+const { Category, Ingredient, Dish, DishIngredient } = require('../src/modules/dishes/models');
 const logger = require('../src/shared/logging/logger');
 
 async function seedSimple() {
     try {
         logger.info('Iniciando seed simplificado...');
 
+        // Primero asegurarse de que las relaciones están establecidas
+        require('../src/shared/database/models');
+
         // Sincronizar modelos (sin forzar)
-        await sequelize.sync();
+        await sequelize.sync({ alter: true });
         logger.info('✅ Modelos sincronizados');
 
         // 1. Crear categorías simples

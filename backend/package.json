@@ -15,7 +15,9 @@
     "docker:run": "docker run -p 3000:3000 restaurante-backend",
     "db:migrate": "node scripts/migrate.js",
     "db:seed": "node scripts/seed.js",
-    "db:seed-data": "node scripts/seed-data.js"
+    "db:seed-data": "node scripts/seed-data.js",
+    "db:seed-orders": "node scripts/seed-orders.js",
+    "db:seed-all": "npm run db:migrate && npm run db:seed-data && npm run db:seed-dishes && npm run db:seed-orders"
   },
   "keywords": [
     "restaurant",
@@ -29,27 +31,28 @@
     "node": ">=18.0.0"
   },
   "dependencies": {
-    "express": "^4.18.2",
-    "cors": "^2.8.5",
-    "helmet": "^7.0.0",
-    "morgan": "^1.10.0",
-    "dotenv": "^16.0.3",
     "bcryptjs": "^2.4.3",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "date-fns": "^2.30.0",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "helmet": "^7.0.0",
+    "joi": "^17.9.2",
     "jsonwebtoken": "^9.0.0",
+    "morgan": "^1.10.0",
+    "multer": "^1.4.5-lts.1",
     "pg": "^8.11.0",
     "sequelize": "^6.31.1",
-    "joi": "^17.9.2",
-    "winston": "^3.9.0",
-    "winston-daily-rotate-file": "^4.7.1",
     "socket.io": "^4.6.1",
-    "multer": "^1.4.5-lts.1",
-    "date-fns": "^2.30.0"
+    "winston": "^3.9.0",
+    "winston-daily-rotate-file": "^4.7.1"
   },
   "devDependencies": {
-    "nodemon": "^3.0.1",
     "eslint": "^8.44.0",
-    "prettier": "^3.0.0",
     "eslint-config-prettier": "^9.0.0",
+    "nodemon": "^3.0.1",
+    "prettier": "^3.0.0",
     "sequelize-cli": "^6.6.0"
   }
 }

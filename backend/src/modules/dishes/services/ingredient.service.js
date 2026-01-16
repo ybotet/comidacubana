@@ -1,30 +1,33 @@
-const Ingredient = require('../models/Ingredient');
+const { Ingredient } = require('../models');
+const { Op } = require('sequelize');
 const logger = require('../../../shared/logging/logger');
 
 class IngredientService {
   constructor() {
     this.Ingredient = Ingredient;
+    this.Op = Op;
+    this.logger = logger;
   }
 
   async getAllIngredients(lang = 'es', filters = {}) {
     try {
       const whereCondition = {};
-      
+
       // Aplicar filtros
       if (filters.category) {
         whereCondition.category = filters.category;
       }
-      
+
       if (filters.is_available !== undefined) {
         whereCondition.is_available = filters.is_available;
       } else {
-        whereCondition.is_available = true; // Por defecto solo disponibles
+        whereCondition.is_available = true;
       }
-      
+
       if (filters.search) {
-        whereCondition[this.Ingredient.sequelize.Op.or] = [
-          { name_es: { [this.Ingredient.sequelize.Op.iLike]: `%${filters.search}%` } },
-          { name_ru: { [this.Ingredient.sequelize.Op.iLike]: `%${filters.search}%` } }
+        whereCondition[this.Op.or] = [
+          { name_es: { [this.Op.iLike]: `%${filters.search}%` } },
+          { name_ru: { [this.Op.iLike]: `%${filters.search}%` } }
         ];
       }
 
@@ -35,7 +38,7 @@ class IngredientService {
 
       return ingredients.map(ingredient => ingredient.getPublicData(lang));
     } catch (error) {
-      logger.error('Error obteniendo ingredientes:', error);
+      this.logger.error('Error obteniendo ingredientes:', error);
       throw error;
     }
   }
@@ -43,21 +46,20 @@ class IngredientService {
   async getIngredientById(id, lang = 'es') {
     try {
       const ingredient = await this.Ingredient.findByPk(id);
-      
+
       if (!ingredient) {
         throw new Error('Ingrediente no encontrado');
       }
 
       return ingredient.getPublicData(lang);
     } catch (error) {
-      logger.error('Error obteniendo ingrediente por ID:', error);
+      this.logger.error('Error obteniendo ingrediente por ID:', error);
       throw error;
     }
   }
 
   async createIngredient(ingredientData) {
     try {
-      // Validar que no exista ingrediente con mismo nombre
       const existingIngredient = await this.Ingredient.findOne({
         where: {
           name_es: ingredientData.name_es
@@ -69,11 +71,11 @@ class IngredientService {
       }
 
       const ingredient = await this.Ingredient.create(ingredientData);
-      logger.info(`Ingrediente creado: ${ingredient.name_es}`);
+      this.logger.info(`Ingrediente creado: ${ingredient.name_es}`);
 
       return ingredient;
     } catch (error) {
-      logger.error('Error creando ingrediente:', error);
+      this.logger.error('Error creando ingrediente:', error);
       throw error;
     }
   }
@@ -81,17 +83,16 @@ class IngredientService {
   async updateIngredient(id, updateData) {
     try {
       const ingredient = await this.Ingredient.findByPk(id);
-      
+
       if (!ingredient) {
         throw new Error('Ingrediente no encontrado');
       }
 
-      // Validar unicidad si se cambia el nombre
       if (updateData.name_es && updateData.name_es !== ingredient.name_es) {
         const existingIngredient = await this.Ingredient.findOne({
           where: {
             name_es: updateData.name_es,
-            id: { [this.Ingredient.sequelize.Op.ne]: id }
+            id: { [this.Op.ne]: id }
           }
         });
 
@@ -101,11 +102,11 @@ class IngredientService {
       }
 
       await ingredient.update(updateData);
-      logger.info(`Ingrediente actualizado: ${ingredient.name_es}`);
+      this.logger.info(`Ingrediente actualizado: ${ingredient.name_es}`);
 
       return ingredient;
     } catch (error) {
-      logger.error('Error actualizando ingrediente:', error);
+      this.logger.error('Error actualizando ingrediente:', error);
       throw error;
     }
   }
@@ -113,23 +114,22 @@ class IngredientService {
   async deleteIngredient(id) {
     try {
       const ingredient = await this.Ingredient.findByPk(id);
-      
+
       if (!ingredient) {
         throw new Error('Ingrediente no encontrado');
       }
 
-      // Verificar si está en uso en algún plato
       const dishCount = await ingredient.countDishes();
       if (dishCount > 0) {
         throw new Error(`No se puede eliminar el ingrediente porque está en ${dishCount} plato(s)`);
       }
 
       await ingredient.destroy();
-      logger.info(`Ingrediente eliminado: ${ingredient.name_es}`);
+      this.logger.info(`Ingrediente eliminado: ${ingredient.name_es}`);
 
       return { success: true, message: 'Ingrediente eliminado correctamente' };
     } catch (error) {
-      logger.error('Error eliminando ingrediente:', error);
+      this.logger.error('Error eliminando ingrediente:', error);
       throw error;
     }
   }
@@ -137,15 +137,15 @@ class IngredientService {
   async toggleIngredientAvailability(id) {
     try {
       const ingredient = await this.Ingredient.findByPk(id);
-      
+
       if (!ingredient) {
         throw new Error('Ingrediente no encontrado');
       }
 
       await ingredient.update({ is_available: !ingredient.is_available });
       const status = ingredient.is_available ? 'disponible' : 'no disponible';
-      
-      logger.info(`Ingrediente marcado como ${status}: ${ingredient.name_es}`);
+
+      this.logger.info(`Ingrediente marcado como ${status}: ${ingredient.name_es}`);
 
       return {
         success: true,
@@ -153,7 +153,7 @@ class IngredientService {
         is_available: ingredient.is_available
       };
     } catch (error) {
-      logger.error('Error cambiando disponibilidad de ingrediente:', error);
+      this.logger.error('Error cambiando disponibilidad de ingrediente:', error);
       throw error;
     }
   }
@@ -170,7 +170,7 @@ class IngredientService {
 
       return ingredients.map(ingredient => ingredient.getPublicData(lang));
     } catch (error) {
-      logger.error('Error obteniendo ingredientes por categoría:', error);
+      this.logger.error('Error obteniendo ingredientes por categoría:', error);
       throw error;
     }
   }
@@ -179,11 +179,11 @@ class IngredientService {
     try {
       const ingredients = await this.Ingredient.findAll({
         where: {
-          [this.Ingredient.sequelize.Op.or]: [
-            { name_es: { [this.Ingredient.sequelize.Op.iLike]: `%${query}%` } },
-            { name_ru: { [this.Ingredient.sequelize.Op.iLike]: `%${query}%` } },
-            { description_es: { [this.Ingredient.sequelize.Op.iLike]: `%${query}%` } },
-            { description_ru: { [this.Ingredient.sequelize.Op.iLike]: `%${query}%` } }
+          [this.Op.or]: [
+            { name_es: { [this.Op.iLike]: `%${query}%` } },
+            { name_ru: { [this.Op.iLike]: `%${query}%` } },
+            { description_es: { [this.Op.iLike]: `%${query}%` } },
+            { description_ru: { [this.Op.iLike]: `%${query}%` } }
           ],
           is_available: true
         },
@@ -192,10 +192,8 @@ class IngredientService {
 
       return ingredients.map(ingredient => ingredient.getPublicData(lang));
     } catch (error) {
-      logger.error('Error buscando ingredientes:', error);
+      this.logger.error('Error buscando ingredientes:', error);
       throw error;
     }
   }
 }
-
-module.exports = new IngredientService();

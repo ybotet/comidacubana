@@ -41,6 +41,8 @@ async function testConnection() {
 async function syncDatabase(force = false) {
   if (config.nodeEnv === 'development' || force) {
     try {
+      // Cargar modelos centralizados
+      require('./models');
       await sequelize.sync({ force });
       console.log(`✅ Base de datos ${force ? 'reiniciada' : 'sincronizada'}.`);
     } catch (error) {

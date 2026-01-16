@@ -1,7 +1,5 @@
 const { DataTypes } = require('sequelize');
 const { sequelize } = require('../../../shared/database/config');
-const Dish = require('./Dish');
-const Ingredient = require('./Ingredient');
 
 const DishIngredient = sequelize.define('DishIngredient', {
   id: {
@@ -67,29 +65,7 @@ const DishIngredient = sequelize.define('DishIngredient', {
   ]
 });
 
-// Establecer relaciones
-Dish.belongsToMany(Ingredient, {
-  through: DishIngredient,
-  foreignKey: 'dish_id',
-  otherKey: 'ingredient_id',
-  as: 'ingredients'
-});
-
-Ingredient.belongsToMany(Dish, {
-  through: DishIngredient,
-  foreignKey: 'ingredient_id',
-  otherKey: 'dish_id',
-  as: 'dishes'
-});
-
-DishIngredient.belongsTo(Dish, {
-  foreignKey: 'dish_id',
-  as: 'dish'
-});
-
-DishIngredient.belongsTo(Ingredient, {
-  foreignKey: 'ingredient_id',
-  as: 'ingredient'
-});
+// Las relaciones se establecerán en el archivo models.js centralizado
+// para evitar dependencias circulares
 
 module.exports = DishIngredient;
