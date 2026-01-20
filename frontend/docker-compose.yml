@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - "3001:3001"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:3000/api
+      - NODE_ENV=development
+    depends_on:
+      - backend
+    networks:
+      - comida-cubana
+
+networks:
+  comida-cubana:
+    driver: bridge
